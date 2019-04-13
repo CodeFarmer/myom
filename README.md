@@ -1,6 +1,6 @@
 # myom
 
-A Quil sketch designed to ... well, that part is up to you.
+Clojure implementation of Tariq Rashid's 'Make Your own Mandelbrot' as a Quil sketch 
 
 ## Usage
 
@@ -12,7 +12,7 @@ REPL - run `(require 'myom.core)`.
 
 ## License
 
-Copyright © 2016 FIXME
+Copyright © 2016 Joel
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
