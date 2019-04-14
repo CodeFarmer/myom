@@ -29,6 +29,13 @@
    :right   1.5})
 
 (defn update-state [state]
+
+  (if (q/key-pressed?)
+      (if (= :s (q/key-as-keyword))
+        (let [filename (str "myom-" (System/currentTimeMillis) ".png")]
+          (println "Saving " filename)
+          (q/save filename))))
+  
   (if  (q/mouse-pressed?) ;; zoom and recenter
     (let [{:keys [bottom left top right]} state
           slice-width (- right left)
@@ -43,7 +50,7 @@
           new-right (+ new-center-x (/ new-slice-width 2))
           new-top (+ new-center-y (/ new-slice-height 2))
           new-bottom (- new-center-y (/ new-slice-height 2))]
-
+      
       {:bottom new-bottom
        :left new-left
        :top new-top
