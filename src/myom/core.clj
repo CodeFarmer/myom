@@ -2,6 +2,9 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]))
 
+(set! *warn-on-reflection* true)
+
+(deftype complex [^double r ^double i])
 
 (def ^:const WIDTH  512)
 (def ^:const HEIGHT 512)
@@ -23,21 +26,29 @@
   state)
 
 
-(defn cmul [[a b] [c d]]
-  [(- (* a c) (* b d)) (+ (* a d) (* b c))])
+(defn cmul [^complex a ^complex b]
+  (let [ra (double (.r a))
+        ia (double (.i a))
+        rb (double (.r b))
+        ib (double (.i b))]
+    (complex. (- (* ra rb) (* ia ib)) (+ (* ra ib) (* ia rb)))))
 
-(defn cadd [[a b] [c d]]
-  [(+ a c) (+ b d)])
+(defn cadd [^complex a ^complex b]
+  (let [ra (double (.r a))
+        ia (double (.i a))
+        rb (double (.r b))
+        ib (double (.i b))]
+    (complex. (+ ra rb) (+ ia ib))))
 
-(defn magnitude [[a b]]
-  (Math/sqrt (+ (* a a) (* b b))))
+(defn magnitude [^complex a]
+  (Math/sqrt (+ (* (.r a) (.r a)) (* (.i a) (.i a)))))
 
-(defn step [z c]
+(defn step [^complex z ^complex c]
   (cadd (cmul z z) c))
 
-(defn iterations-before-divergence [c]
+(defn iterations-before-divergence [^complex c]
   (loop [i 0
-         z [0 0]]
+         z (complex. 0 0)]
     ;; (println "(diverges loop: " i z c)
     (if (= i ITERATIONS)
       i
@@ -53,7 +64,7 @@
         hstep (/ height HEIGHT)
         a (+ left (* x wstep))
         b (- top (* y hstep))]
-    (let [i (iterations-before-divergence [a b])
+    (let [i (iterations-before-divergence (complex. a b))
           intensity (* i (/ 255 ITERATIONS))]
       [intensity intensity intensity])))
 
