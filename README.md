@@ -2,7 +2,7 @@
 
 Clojure implementation of Tariq Rashid's 'Make Your own Mandelbrot' as a Quil sketch 
 
-! [rendered Mandelbrot](myom-1555264577280.png)
+![rendered Mandelbrot](myom-1555264577280.png "Rendered mandelbrot")
 
 ## Usage
 
