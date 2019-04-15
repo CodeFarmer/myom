@@ -13,7 +13,7 @@
 (def ^:const THRESHOLD 4.0)
 
 ;; 10 is visibly not enough at 512x512
-(def ^:const ITERATIONS 80)
+(def ^:const ITERATIONS 200)
 
 ;; When zooming, expand this portion of the original image to fill
 ;; smaller is zoomier
