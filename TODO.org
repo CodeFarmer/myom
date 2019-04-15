@@ -7,7 +7,12 @@
   - [ ] palettes
   - [ ] dynamic control
 
-- [ ] successive refinement
+** Performamce
+
+- [ ] successive refinement (tiles?)
+  - http://mrob.com/pub/muency/successiverefinement.html
+- [ ] iterative dwell limit
+  - http://mrob.com/pub/muency/automaticdwelllimit.html
 
 * Exploration ideas
 
