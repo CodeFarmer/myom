@@ -1,0 +1,16 @@
+* General
+
+- [ ] stop re-rendering if nothing has moved
+
+- [ ] different colour schemes
+  - [ ] logarithmic colour scale?
+  - [ ] palettes
+  - [ ] dynamic control
+
+- [ ] successive refinement
+
+* Exploration ideas
+
+- [ ] add a control for increasing/decreasing max-iterations
+- [ ] switch between dwell limits when zooming?
+
