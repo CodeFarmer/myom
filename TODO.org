@@ -7,6 +7,10 @@
   - [ ] palettes
   - [ ] dynamic control
 
+- [ ] Julia set
+  - [ ] change step fn to allow starting point
+  - [ ] render-julia (partial julia c) vs render-mandelbrot
+
 ** Performamce
 
 - [ ] write to anm iterations buffer instead of directly to q/image
