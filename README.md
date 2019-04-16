@@ -20,6 +20,9 @@ copy of the current view.
 Won't currently work on Mac with JDK > 8 at the moment [because
 reasons](https://github.com/processing/processing/issues/5746).
 
+$ jenv 1.8
+$ export JAVA_OPTS=-Djava.awt.headless=false
+
 ## License
 
 Copyright © 2016 Joel
