@@ -9,6 +9,7 @@
 (def ^:const WIDTH  800)
 (def ^:const HEIGHT 600)
 
+(def ^:const FRAME_RATE 10)
 ; arbitrary divergence threshold
 (def ^:const THRESHOLD 4.0)
 
@@ -21,7 +22,7 @@
 
 (defn setup []
 
-  (q/frame-rate 0.5)
+  (q/frame-rate FRAME_RATE)
 
   {:bottom -1.5
    :left   -2.5
@@ -37,7 +38,7 @@
           (q/save filename))))
   
   (if  (q/mouse-pressed?) ;; zoom and recenter
-    (let [{:keys [bottom left top right]} state
+    (let [{:keys [bottom left top right prev-state]} state
           slice-width (- right left)
           slice-height (- top bottom)
           mx-abs (/ (q/mouse-x) WIDTH)
@@ -54,8 +55,10 @@
       {:bottom new-bottom
        :left new-left
        :top new-top
-       :right new-right})
-    state))
+       :right new-right
+       :prev-state (dissoc state :prev-state)})
+    
+    (assoc state :prev-state (dissoc state :prev-state))))
 
 
 (defn cmul [^complex a ^complex b]
@@ -82,7 +85,7 @@
   (loop [i 0
          z (complex. 0 0)]
     (if (= i max-iterations)
-      i
+      0
       (if (> (magnitude z) threshold)
         i
         (recur (inc i) (step z c))))))
@@ -95,20 +98,20 @@
         a (+ left (* x wstep))
         b (- top (* y hstep))]
     (let [i (iterations-before-divergence (complex. a b) threshold max-iterations)
-          intensity (if (= i max-iterations)
-                      0
-                      (* i (/ 255 max-iterations)))]
+          intensity (* i (/ 255 max-iterations))]
       (q/color intensity intensity intensity))))
 
 (defn draw-state [state]
   (println "draw-state " state)
   (let [start (System/currentTimeMillis)
         i (q/create-image WIDTH HEIGHT :rgb)
-        {:keys [bottom left top right]} state]
-    (dotimes [x WIDTH]
-      (dotimes [y HEIGHT]
-        (q/set-pixel i x y (get-pixel-colour bottom top left right x y WIDTH HEIGHT THRESHOLD ITERATIONS))))
-    (q/image i 0 0)
+        {:keys [bottom left top right prev-state]} state]
+
+    (if (not (= prev-state (dissoc state :prev-state)))
+      (do (dotimes [x WIDTH]
+            (dotimes [y HEIGHT]
+              (q/set-pixel i x y (get-pixel-colour bottom top left right x y WIDTH HEIGHT THRESHOLD ITERATIONS))))
+          (q/image i 0 0)))
     (println "render time: " (- (System/currentTimeMillis) start) "ms"))
 )
 

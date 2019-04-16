@@ -1,6 +1,6 @@
 * General
 
-- [ ] stop re-rendering if nothing has moved
+- [X] stop re-rendering if nothing has moved
 
 - [ ] different colour schemes
   - [ ] logarithmic colour scale?
@@ -8,6 +8,8 @@
   - [ ] dynamic control
 
 ** Performamce
+
+- [ ] write to anm iterations buffer instead of directly to q/image
 
 - [ ] successive refinement (tiles?)
   - http://mrob.com/pub/muency/successiverefinement.html
