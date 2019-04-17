@@ -81,14 +81,19 @@
 (defn step [^complex z ^complex c]
   (cadd (cmul z z) c))
 
-(defn iterations-before-divergence [^complex c threshold max-iterations]
-  (loop [i 0
-         z (complex. 0 0)]
-    (if (= i max-iterations)
-      0
-      (if (> (magnitude z) threshold)
-        i
-        (recur (inc i) (step z c))))))
+
+(defn iterations-before-divergence
+
+  ([^complex z ^complex c threshold max-iterations]
+   (iterations-before-divergence 0 z c threshold max-iterations))
+  
+  ([i ^complex z ^complex c threshold max-iterations]
+   (if (= i max-iterations)
+     0
+     (if (> (magnitude z) threshold)
+       i
+       (recur (inc i) (step z c) c threshold max-iterations)))))
+
 
 (defn get-pixel-colour [bottom top left right x y image-width image-height threshold max-iterations]
   (let [width (- right left)
@@ -97,7 +102,7 @@
         hstep (/ height image-height)
         a (+ left (* x wstep))
         b (- top (* y hstep))]
-    (let [i (iterations-before-divergence (complex. a b) threshold max-iterations)
+    (let [i (iterations-before-divergence (complex. 0 0) (complex. a b) threshold max-iterations)
           intensity (* i (/ 255 max-iterations))]
       (q/color intensity intensity intensity))))
 

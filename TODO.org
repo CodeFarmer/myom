@@ -7,13 +7,13 @@
   - [ ] palettes
   - [ ] dynamic control
 
-- [ ] Julia set
-  - [ ] change step fn to allow starting point
+- [-] Julia set
+  - [X] change step fn to allow starting point
   - [ ] render-julia (partial julia c) vs render-mandelbrot
 
 ** Performamce
 
-- [ ] write to anm iterations buffer instead of directly to q/image
+- [ ] write to an iterations buffer instead of directly to q/image
 
 - [ ] successive refinement (tiles?)
   - http://mrob.com/pub/muency/successiverefinement.html
