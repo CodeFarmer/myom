@@ -7,9 +7,10 @@
   - [ ] palettes
   - [ ] dynamic control
 
-- [-] Julia set
+- [X] Julia set
   - [X] change step fn to allow starting point
-  - [ ] render-julia (partial julia c) vs render-mandelbrot
+  - [X] render-julia (partial julia c) vs render-mandelbrot
+  - [ ] DRY up the pixel colour code
 
 ** Performamce
 

@@ -20,46 +20,6 @@
 ;; smaller is zoomier
 (def ^:const ZOOM_RATIO 0.5)
 
-(defn setup []
-
-  (q/frame-rate FRAME_RATE)
-
-  {:bottom -1.5
-   :left   -2.5
-   :top     1.5
-   :right   1.5})
-
-(defn update-state [state]
-
-  (if (q/key-pressed?)
-      (if (= :s (q/key-as-keyword))
-        (let [filename (str "myom-" (System/currentTimeMillis) ".png")]
-          (println "Saving " filename)
-          (q/save filename))))
-  
-  (if  (q/mouse-pressed?) ;; zoom and recenter
-    (let [{:keys [bottom left top right prev-state]} state
-          slice-width (- right left)
-          slice-height (- top bottom)
-          mx-abs (/ (q/mouse-x) WIDTH)
-          my-abs (/ (q/mouse-y) HEIGHT)
-          new-center-x (+ left (* slice-width mx-abs))
-          new-center-y (- top (* slice-height my-abs))
-          new-slice-width (* ZOOM_RATIO slice-width)
-          new-slice-height (* ZOOM_RATIO slice-height)
-          new-left (- new-center-x (/ new-slice-width 2))
-          new-right (+ new-center-x (/ new-slice-width 2))
-          new-top (+ new-center-y (/ new-slice-height 2))
-          new-bottom (- new-center-y (/ new-slice-height 2))]
-      
-      {:bottom new-bottom
-       :left new-left
-       :top new-top
-       :right new-right
-       :prev-state (dissoc state :prev-state)})
-    
-    (assoc state :prev-state (dissoc state :prev-state))))
-
 
 (defn cmul [^complex a ^complex b]
   (let [ra (double (.r a))
@@ -81,7 +41,6 @@
 (defn step [^complex z ^complex c]
   (cadd (cmul z z) c))
 
-
 (defn iterations-before-divergence
 
   ([^complex z ^complex c threshold max-iterations]
@@ -94,28 +53,83 @@
        i
        (recur (inc i) (step z c) c threshold max-iterations)))))
 
-
-(defn get-pixel-colour [bottom top left right x y image-width image-height threshold max-iterations]
+(defn pixel-coords
+  "Get the point in the complex plane specified by the pixel (x, y)"
+  [bottom top left right x y image-width image-height]
   (let [width (- right left)
         height (- top bottom)
         wstep (/ width image-width)
-        hstep (/ height image-height)
-        a (+ left (* x wstep))
-        b (- top (* y hstep))]
-    (let [i (iterations-before-divergence (complex. 0 0) (complex. a b) threshold max-iterations)
-          intensity (* i (/ 255 max-iterations))]
-      (q/color intensity intensity intensity))))
+        hstep (/ height image-height)]
+    (complex. (+ left (* x wstep)) (- top (* y hstep)))))
+
+(defn get-pixel-colour-mandelbrot [bottom top left right x y image-width image-height threshold max-iterations]
+  (let [i (iterations-before-divergence (complex. 0 0) (pixel-coords bottom top left right x y image-width image-height) threshold max-iterations)
+        intensity (* i (/ 255 max-iterations))]
+    (q/color intensity intensity intensity)))
+
+(defn get-pixel-colour-julia [c bottom top left right x y image-width image-height threshold max-iterations]
+  (let [i (iterations-before-divergence (pixel-coords bottom top left right x y image-width image-height) c threshold max-iterations)
+        intensity (* i (/ 255 max-iterations))]
+    (q/color intensity intensity intensity)))
+
+;; Quil sketch callbacks
+
+(defn setup []
+
+  (q/frame-rate FRAME_RATE)
+
+  {:view {:bottom -1.5
+          :left   -2.5
+          :top     1.5
+          :right   1.5}
+
+   :c (complex. -0.35, 0.65) ;; julia c
+
+   :iterations-buffer (apply (partial vector-of :int) (repeat (* WIDTH HEIGHT) 0))})
+
+(defn update-state [state]
+
+  (if (q/key-pressed?)
+      (if (= :s (q/key-as-keyword))
+        (let [filename (str "myom-" (System/currentTimeMillis) ".png")]
+          (println "Saving " filename)
+          (q/save filename))))
+  
+  (if  (q/mouse-pressed?) ;; zoom and recenter
+    (let [{:keys [bottom left top right]} (:view state)
+          slice-width (- right left)
+          slice-height (- top bottom)
+          mx-abs (/ (q/mouse-x) WIDTH)
+          my-abs (/ (q/mouse-y) HEIGHT)
+          new-center-x (+ left (* slice-width mx-abs))
+          new-center-y (- top (* slice-height my-abs))
+          new-slice-width (* ZOOM_RATIO slice-width)
+          new-slice-height (* ZOOM_RATIO slice-height)
+          new-left (- new-center-x (/ new-slice-width 2))
+          new-right (+ new-center-x (/ new-slice-width 2))
+          new-top (+ new-center-y (/ new-slice-height 2))
+          new-bottom (- new-center-y (/ new-slice-height 2))]
+      
+      (merge state {:view {:bottom new-bottom
+                           :left new-left
+                           :top new-top
+                           :right new-right}
+                    
+                    :prev-state (dissoc state :prev-state)}))
+    
+    (assoc state :prev-state (dissoc state :prev-state))))
+
 
 (defn draw-state [state]
-  (println "draw-state " state)
+  (println "draw-state " (:view state))
   (let [start (System/currentTimeMillis)
         i (q/create-image WIDTH HEIGHT :rgb)
-        {:keys [bottom left top right prev-state]} state]
+        {:keys [bottom left top right]} (:view state)]
 
-    (if (not (= prev-state (dissoc state :prev-state)))
+    (if (not (= (:prev-state state) (dissoc state :prev-state)))
       (do (dotimes [x WIDTH]
             (dotimes [y HEIGHT]
-              (q/set-pixel i x y (get-pixel-colour bottom top left right x y WIDTH HEIGHT THRESHOLD ITERATIONS))))
+              (q/set-pixel i x y (get-pixel-colour-julia (:c state) bottom top left right x y WIDTH HEIGHT THRESHOLD ITERATIONS))))
           (q/image i 0 0)))
     (println "render time: " (- (System/currentTimeMillis) start) "ms"))
 )
