@@ -14,7 +14,7 @@
 (def ^:const THRESHOLD 4.0)
 
 ;; 10 is visibly not enough at 512x512
-(def ^:const ITERATIONS 200)
+(def ^:const START_ITERATIONS 200)
 
 ;; When zooming, expand this portion of the original image to fill
 ;; smaller is zoomier
@@ -83,39 +83,48 @@
           :top     1.5
           :right   1.5}
 
-   :iterations-buffer (apply (partial vector-of :int) (repeat (* WIDTH HEIGHT) 0))})
+   :iterations-buffer (apply (partial vector-of :int) (repeat (* WIDTH HEIGHT) 0))
+
+   :iterations START_ITERATIONS})
+
 
 (defn update-state [state]
 
   (if (q/key-pressed?)
-      (if (= :s (q/key-as-keyword))
-        (let [filename (str "myom-" (System/currentTimeMillis) ".png")]
-          (println "Saving " filename)
-          (q/save filename))))
-  
-  (if  (q/mouse-pressed?) ;; zoom and recenter
-    (let [{:keys [bottom left top right]} (:view state)
-          slice-width (- right left)
-          slice-height (- top bottom)
-          mx-abs (/ (q/mouse-x) WIDTH)
-          my-abs (/ (q/mouse-y) HEIGHT)
-          new-center-x (+ left (* slice-width mx-abs))
-          new-center-y (- top (* slice-height my-abs))
-          new-slice-width (* ZOOM_RATIO slice-width)
-          new-slice-height (* ZOOM_RATIO slice-height)
-          new-left (- new-center-x (/ new-slice-width 2))
-          new-right (+ new-center-x (/ new-slice-width 2))
-          new-top (+ new-center-y (/ new-slice-height 2))
-          new-bottom (- new-center-y (/ new-slice-height 2))]
+    (case (q/key-as-keyword)
+      :s (let [filename (str "myom-" (System/currentTimeMillis) ".png")]
+           (println "Saving " filename)
+           (q/save filename)
+           state)
+      :+ (assoc state :iterations (* (:iterations state) 2))
+      :- (assoc state :iterations (/ (:iterations state) 2))
       
-      (merge state {:view {:bottom new-bottom
-                           :left new-left
-                           :top new-top
-                           :right new-right}
-                    
-                    :prev-state (dissoc state :prev-state)}))
+      (do (println "Key pressed: " (q/key-as-keyword))
+          state))
     
-    (assoc state :prev-state (dissoc state :prev-state))))
+    (if  (q/mouse-pressed?) ;; zoom and recenter
+      (let [{:keys [bottom left top right]} (:view state)
+            slice-width (- right left)
+            slice-height (- top bottom)
+            mx-abs (/ (q/mouse-x) WIDTH)
+            my-abs (/ (q/mouse-y) HEIGHT)
+            new-center-x (+ left (* slice-width mx-abs))
+            new-center-y (- top (* slice-height my-abs))
+            new-slice-width (* ZOOM_RATIO slice-width)
+            new-slice-height (* ZOOM_RATIO slice-height)
+            new-left (- new-center-x (/ new-slice-width 2))
+            new-right (+ new-center-x (/ new-slice-width 2))
+            new-top (+ new-center-y (/ new-slice-height 2))
+            new-bottom (- new-center-y (/ new-slice-height 2))]
+        
+        (merge state {:view {:bottom new-bottom
+                             :left new-left
+                             :top new-top
+                             :right new-right}
+                      
+                      :prev-state (dissoc state :prev-state)}))
+      
+      (assoc state :prev-state (dissoc state :prev-state)))))
 
 
 (defn draw-state [pixel-renderer state]
@@ -127,11 +136,14 @@
     (if (not (= (:prev-state state) (dissoc state :prev-state)))
       (do (dotimes [x WIDTH]
             (dotimes [y HEIGHT]
-              (q/set-pixel i x y (pixel-renderer bottom top left right x y WIDTH HEIGHT THRESHOLD ITERATIONS))))
+              (q/set-pixel i x y (pixel-renderer bottom top left right x y WIDTH HEIGHT THRESHOLD (:iterations state)))))
           (q/image i 0 0)))
     (println "render time: " (- (System/currentTimeMillis) start) "ms"))
 )
 
+
+(def julia-draw (partial draw-state (partial get-pixel-colour-julia (complex. -0.35, 0.65))))
+(def mandelbrot-draw (partial draw-state get-pixel-colour-mandelbrot))
 
 (q/defsketch myom
   :title "You're a Rorschach test on fire"
@@ -140,7 +152,7 @@
   :setup setup
   ; update-state is called on each iteration before draw-state.
   :update update-state
-  :draw (partial draw-state (partial get-pixel-colour-julia (complex. -0.35, 0.65)))
+  :draw mandelbrot-draw
   :features [:keep-on-top]
   ; This sketch uses functional-mode middleware.
   ; Check quil wiki for more info about middlewares and particularly

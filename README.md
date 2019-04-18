@@ -12,8 +12,10 @@ REPL - run `(require 'myom.core)`.
 
 LightTable - open `core.clj` and press `Ctrl+Shift+Enter` to evaluate the file.
 
-Mouse-click on the image to zoom in on the cursor. Hold 's' to save a
-copy of the current view.
+- Mouse-click on the image to zoom in on the cursor
+- Type 's' to save a copy of the current view
+- Type '+' to double the current maximum number of iterations
+- Type '-' to halve the current maximum number of iterations
 
 ## Notes
 
