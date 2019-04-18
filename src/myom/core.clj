@@ -83,8 +83,6 @@
           :top     1.5
           :right   1.5}
 
-   :c (complex. -0.35, 0.65) ;; julia c
-
    :iterations-buffer (apply (partial vector-of :int) (repeat (* WIDTH HEIGHT) 0))})
 
 (defn update-state [state]
@@ -120,7 +118,7 @@
     (assoc state :prev-state (dissoc state :prev-state))))
 
 
-(defn draw-state [state]
+(defn draw-state [pixel-renderer state]
   (println "draw-state " (:view state))
   (let [start (System/currentTimeMillis)
         i (q/create-image WIDTH HEIGHT :rgb)
@@ -129,7 +127,7 @@
     (if (not (= (:prev-state state) (dissoc state :prev-state)))
       (do (dotimes [x WIDTH]
             (dotimes [y HEIGHT]
-              (q/set-pixel i x y (get-pixel-colour-julia (:c state) bottom top left right x y WIDTH HEIGHT THRESHOLD ITERATIONS))))
+              (q/set-pixel i x y (pixel-renderer bottom top left right x y WIDTH HEIGHT THRESHOLD ITERATIONS))))
           (q/image i 0 0)))
     (println "render time: " (- (System/currentTimeMillis) start) "ms"))
 )
@@ -142,7 +140,7 @@
   :setup setup
   ; update-state is called on each iteration before draw-state.
   :update update-state
-  :draw draw-state
+  :draw (partial draw-state (partial get-pixel-colour-julia (complex. -0.35, 0.65)))
   :features [:keep-on-top]
   ; This sketch uses functional-mode middleware.
   ; Check quil wiki for more info about middlewares and particularly
